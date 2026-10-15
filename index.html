@@ -1,0 +1,691 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hoodie Murah, Telepon Palsu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: sama dengan Episode 1 — panggung visual novel orang pertama, foto latar penuh, lawan bicara di tengah, kotak dialog di bawah, panel misi menimpa panggung. Satu tampilan gelap (sengaja). Tambahan Episode 2: mode Adu Argumen dengan aksen merah. */
+:root{
+  --page:#0b1820; --ink:#f3f6f7; --box:rgba(10,26,36,.92); --box-line:#3a6577;
+  --signal:#f2b130; --signal-ink:#261a00; --navy:#173a52;
+  --paper:#fbf8f2; --paper-ink:#1b2a33; --paper-line:#d6dde0; --muted:#8fa6b0;
+  --ok:#2f9e66; --bad:#d4483d; --alarm:#e23b2e; --alarm-ink:#fff4f2; --wa:#0f7a5c; --wa-bg:#ece5dd;
+  --display:"Bricolage Grotesque","Arial Narrow",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--page);color:var(--ink);font-family:var(--body);margin:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;display:flex;flex-direction:column;align-items:center;gap:8px}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+
+.hud{width:100%;max-width:1000px;display:flex;justify-content:space-between;align-items:center;gap:8px 12px;flex-wrap:wrap;font-size:.75rem}
+.hud .t{font-family:var(--display);font-weight:800;color:var(--signal);letter-spacing:.03em;font-size:.9rem}
+.hud .r{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.steps{display:flex;gap:4px;flex-wrap:wrap}
+.steps span{padding:3px 8px;border-radius:20px;border:1px solid var(--box-line);color:var(--muted)}
+.steps span.on{background:var(--signal);border-color:var(--signal);color:var(--signal-ink);font-weight:700}
+.steps span.done{color:var(--ink);border-color:var(--ink)}
+.recbtn{background:transparent;color:var(--ink);border:1px solid var(--signal);border-radius:20px;padding:3px 10px;font-size:.75rem;font-weight:700}
+.recbtn b{color:var(--signal)}
+.hearts{display:flex;gap:4px;align-items:center;color:var(--alarm-ink);font-weight:700}
+.hearts i{width:14px;height:14px;border-radius:3px;background:var(--alarm);display:inline-block;transform:rotate(45deg) scale(.8);transition:opacity .3s,transform .3s}
+.hearts i.off{opacity:.2;transform:rotate(45deg) scale(.5)}
+
+.stage{position:relative;width:min(100%, calc((100dvh - 70px) * 16 / 9));max-width:1000px;aspect-ratio:16/9;border-radius:14px;overflow:hidden;border:1px solid var(--box-line);background:#000;user-select:none}
+@media (max-aspect-ratio:4/5){.stage{aspect-ratio:auto;height:calc(100dvh - 90px);min-height:540px}}
+.stage.ce{border-color:var(--alarm);box-shadow:0 0 0 2px rgba(226,59,46,.35)}
+.stage.shake{animation:shake .45s}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+
+.scene{position:absolute;transition:opacity .6s}
+.scene.out{opacity:0}
+.scene .bgimg{position:absolute;inset:0;background-size:100% 100%}
+.hot{position:absolute;border:3px solid var(--signal);border-radius:12px;background:rgba(242,177,48,.14);animation:pulse 1.4s infinite;padding:0}
+.hot.round{border-radius:50%}
+.hot .lbl{position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);white-space:nowrap;background:var(--signal);color:var(--signal-ink);font-weight:800;font-size:12px;padding:2px 8px;border-radius:4px}
+.hot.decoy{border-color:transparent;background:transparent;animation:none}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(242,177,48,.7)}50%{box-shadow:0 0 0 .9em rgba(242,177,48,0)}}
+.notif{position:absolute;left:47.4%;top:41%;width:7.8%;background:rgba(255,255,255,.96);color:#1b2a33;border-radius:.6em;padding:.45em .5em;font-size:.62em;line-height:1.25;box-shadow:0 .3em .8em rgba(0,0,0,.25);animation:drop .6s both}
+.notif b{display:block;color:#c0473a;font-size:.95em}
+@keyframes drop{from{transform:translateY(-1em);opacity:0}}
+
+.sprite{position:absolute;left:50%;bottom:0;height:94%;transform:translateX(-50%);pointer-events:none;transition:opacity .35s,transform .35s;filter:drop-shadow(0 8px 24px rgba(0,0,0,.45))}
+.sprite.hide{opacity:0;transform:translate(-50%,24px)}
+@media (max-aspect-ratio:4/5){.sprite{height:68%;bottom:14%}}
+.sprite.dim{filter:brightness(.62) drop-shadow(0 8px 24px rgba(0,0,0,.45))}
+.sprite.hit{animation:hit .5s}
+@keyframes hit{25%{transform:translateX(-46%)}50%{transform:translateX(-53%)}75%{transform:translateX(-48%)}}
+
+.call{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:8px;background:rgba(10,26,36,.88);border:1px solid var(--box-line);border-radius:30px;padding:5px 12px 5px 8px;font-size:.8rem;font-weight:700}
+.call::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--ok);animation:blink 1s infinite}
+.call .tm{font-family:var(--mono);color:var(--muted);font-weight:500}
+@keyframes blink{50%{opacity:.3}}
+
+.dlg{position:absolute;left:12px;right:12px;bottom:12px;min-height:22%;background:var(--box);border:2px solid var(--box-line);border-radius:12px;padding:24px 18px 30px;cursor:pointer;backdrop-filter:blur(4px)}
+.dlg.think{background:rgba(42,35,70,.93);border-color:#7f6fc2;border-style:dashed}
+.dlg.think .txt{font-style:italic}
+.dlg.tip{border-color:var(--signal);cursor:default}
+.dlg.foe{border-color:var(--alarm)}
+.dlg .name{position:absolute;top:-15px;left:14px;background:var(--signal);color:var(--signal-ink);font-family:var(--display);font-weight:800;padding:3px 12px;border-radius:4px;font-size:.95rem}
+.dlg .name.me{background:#7fc0de;color:#08202c}
+.dlg .name.th{background:#b6a8f0;color:#1d1640}
+.dlg .name.foe{background:var(--alarm);color:var(--alarm-ink)}
+.dlg .txt{font-size:clamp(1rem,2.2vw,1.15rem);line-height:1.5;max-width:70ch}
+.dlg .more{position:absolute;right:14px;bottom:8px;font-size:.75rem;color:var(--muted)}
+.dlg .more::after{content:" ▸"}
+.choices{position:absolute;left:50%;transform:translateX(-50%);width:min(580px,calc(100% - 32px));bottom:calc(22% + 30px);display:flex;flex-direction:column;gap:8px}
+.choice{background:var(--paper);color:var(--paper-ink);border:2px solid var(--signal);border-radius:10px;padding:11px 14px;text-align:left;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.choice:hover{background:#fff1cf}
+.choice .k{font-family:var(--mono);color:#a36d00;margin-right:8px}
+.stage.ce .choice{border-color:var(--alarm)}
+.stage.ce .choice .k{color:var(--alarm)}
+
+.fade{position:absolute;inset:0;background:#000;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:clamp(1.4rem,4vw,2rem);opacity:0;pointer-events:none;transition:opacity .8s;text-align:center;padding:20px}
+.fade.on{opacity:1;pointer-events:auto}
+
+/* gelembung TIDAK TERKECOH / RASAIN */
+.bubble{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5}
+.bubble span{display:block;font-family:var(--display);font-weight:800;font-size:clamp(1.7rem,7.5vw,4.2rem);letter-spacing:-.02em;padding:.55em .9em;white-space:nowrap;max-width:96%;text-align:center;background:var(--alarm);color:#fff;transform:rotate(-6deg);
+  clip-path:polygon(0% 18%,9% 22%,6% 0%,22% 14%,33% 2%,42% 15%,55% 0%,62% 15%,78% 3%,80% 18%,100% 10%,91% 32%,100% 45%,90% 58%,100% 78%,84% 76%,88% 100%,70% 86%,58% 100%,48% 86%,34% 98%,30% 82%,12% 96%,14% 77%,0% 80%,8% 60%,0% 44%,9% 34%);
+  -webkit-text-stroke:2px #5c0d06;animation:slam .9s both}
+.bubble.hold span{background:var(--signal);color:var(--signal-ink);-webkit-text-stroke:0}
+@keyframes slam{0%{transform:rotate(-6deg) scale(2.4);opacity:0}18%{transform:rotate(-6deg) scale(.92);opacity:1}28%{transform:rotate(-6deg) scale(1.04)}80%{opacity:1}100%{transform:rotate(-6deg) scale(1);opacity:0}}
+.flash{position:absolute;inset:0;background:#fff;pointer-events:none;opacity:0;z-index:4}
+.flash.on{animation:fl .35s}
+@keyframes fl{0%{opacity:.85}100%{opacity:0}}
+
+/* VERSUS */
+.vs{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;
+  background:repeating-conic-gradient(from 0deg at 50% 50%,#10283a 0deg 4deg,#0b1820 4deg 9deg)}
+.vs img{height:100%;max-width:none;animation:vsIn .7s cubic-bezier(.2,.8,.2,1) both;filter:drop-shadow(0 0 30px rgba(0,0,0,.6))}
+.vs .vt{position:absolute;left:0;right:0;bottom:12%;text-align:center;font-family:var(--display);font-weight:800;font-size:clamp(1.8rem,6vw,3.6rem);color:#fff;text-shadow:0 4px 0 var(--alarm),0 8px 24px rgba(0,0,0,.6);animation:vtIn .6s .5s both;transform:rotate(-4deg)}
+.vs .vt small{display:block;font-size:.35em;letter-spacing:.2em;text-shadow:none;color:var(--signal)}
+@keyframes vsIn{from{transform:scale(1.35);opacity:0}}
+@keyframes vtIn{from{transform:translateX(-120%) rotate(-4deg)}}
+
+/* panel misi */
+.panel{position:absolute;inset:0;background:rgba(6,16,22,.6);display:flex;align-items:center;justify-content:center;padding:14px;z-index:3}
+.sheet{background:var(--paper);color:var(--paper-ink);border-radius:14px;width:100%;max-width:520px;max-height:100%;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.sheet h2{font-family:var(--display);font-weight:800;font-size:1.25rem;margin:0;text-wrap:balance}
+.sheet p{margin:0;font-size:.88rem}
+.tag{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:#6b7f88}
+.hint{font-size:.84rem;background:#fff1cf;border-left:4px solid var(--signal);padding:8px 10px;border-radius:4px}
+.hint.bad{background:#fde3e0;border-color:var(--bad)}
+.hint.good{background:#e2f4ea;border-color:var(--ok)}
+.go{background:var(--signal);color:var(--signal-ink);border:0;border-radius:10px;padding:13px;font-weight:800;font-family:var(--display);font-size:1.05rem}
+.go.alt{background:var(--navy);color:#fff}
+.go:disabled{opacity:.4;cursor:default}
+.yn{display:flex;gap:8px;flex-wrap:wrap}
+.yn button{flex:1;min-width:52px;border:1.5px solid var(--paper-line);background:#fff;color:var(--paper-ink);border-radius:8px;padding:9px;font-weight:700}
+.yn button.on{border-color:var(--navy);background:var(--navy);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:.85rem;color:inherit}
+td{padding:6px 0;border-bottom:1px solid var(--paper-line);vertical-align:top}
+td:last-child{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;padding-left:8px}
+tr.tot td{font-weight:800;border:0;font-size:.95rem}
+.facts{margin:0;padding-left:18px;font-size:.86rem;display:flex;flex-direction:column;gap:5px}
+.sheet a{color:var(--navy);font-weight:700}
+code.n{font-family:var(--mono);font-weight:700;background:#e8eef0;padding:2px 8px;border-radius:4px;user-select:all}
+
+/* produk marketplace */
+.prod{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:start}
+.prod svg{width:100%;height:auto;background:#f3ece4;border-radius:8px}
+.prod .nm{font-weight:700;font-size:.95rem}
+.prod .pr{font-family:var(--mono);font-weight:700;font-size:1.2rem;color:#c0473a}
+.prod s{color:#8a9aa1;font-size:.8rem;margin-left:6px}
+.prod .meta{font-size:.78rem;color:#4b5f68;display:flex;flex-direction:column;gap:2px;margin-top:4px}
+
+/* layar HP */
+.phone{align-self:center;width:min(260px,100%);border:8px solid #111;border-radius:26px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.phone img{display:block;width:100%}
+.wa-top{background:var(--wa);color:#fff;padding:10px 12px;display:flex;flex-direction:column;font-size:.85rem}
+.wa-top b{font-size:.95rem}
+.wa-body{background:var(--wa-bg);padding:10px;display:flex;flex-direction:column;gap:6px;min-height:300px;max-height:46dvh;overflow:auto}
+.msg{max-width:84%;padding:7px 9px;border-radius:8px;font-size:.82rem;line-height:1.35;background:#fff;color:#1b2a33;animation:drop .3s both;box-shadow:0 1px 1px rgba(0,0,0,.12)}
+.msg.me{align-self:flex-end;background:#d9fdd3}
+.msg.mono{font-family:var(--mono);font-weight:700}
+.msg.dots{color:#6b7f88;font-style:italic}
+
+/* keypad */
+.dial{align-self:center;width:min(230px,100%);background:#0f1c24;color:#fff;border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.dial .scr{font-family:var(--mono);font-size:1.6rem;text-align:center;min-height:2.2rem;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.dial .scr.pin{letter-spacing:.4em}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.keys button{background:#203644;color:#fff;border:0;border-radius:50%;aspect-ratio:1;max-width:100%;font-family:var(--mono);font-size:1.25rem;font-weight:700}
+.keys button:active{background:#2d4b5e}
+.keys .call-b{background:var(--ok)}
+.keys .del{background:transparent;font-size:1rem}
+.note{font-size:.8rem;background:#fff1cf;color:#4a3700;border-radius:6px;padding:6px 10px;transform:rotate(-1.5deg);align-self:center;box-shadow:0 3px 8px rgba(0,0,0,.2)}
+
+.receipt{border:1.5px dashed #9aa9b0;border-radius:8px;padding:12px;background:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:8px}
+.receipt::after{content:"SIMULASI";position:absolute;right:-30px;top:40%;transform:rotate(-24deg);font-family:var(--display);font-weight:800;font-size:2.6rem;color:rgba(212,72,61,.16);letter-spacing:.1em;pointer-events:none}
+
+/* catatan bukti */
+.recst{position:absolute;top:12px;right:12px;z-index:3;display:flex;align-items:center;gap:7px;background:var(--paper);color:var(--paper-ink);border:2px solid var(--signal);border-radius:10px;padding:7px 10px 7px 9px;font-weight:800;font-size:.85rem;box-shadow:0 6px 16px rgba(0,0,0,.4)}
+.recst svg{width:20px;height:20px;color:#a36d00}
+.recst b{background:var(--signal);color:var(--signal-ink);border-radius:20px;min-width:22px;padding:1px 6px;font-size:.78rem}
+.recst:hover{background:#fff1cf}
+.recst.new{animation:pulse 1.2s 3}
+.stage.ce .recst{border-color:var(--alarm)}
+@media (max-width:520px){.recst span{display:none}}
+.ev{display:flex;flex-direction:column;gap:8px}
+.ev div{border:1.5px solid var(--paper-line);border-radius:8px;padding:8px 10px;background:#fff;font-size:.85rem}
+.ev b{display:block;font-family:var(--display);font-size:.95rem}
+.ev small{color:#6b7f88}
+.toast{position:absolute;top:62px;right:12px;z-index:7;background:var(--paper);color:var(--paper-ink);border-left:5px solid var(--signal);border-radius:8px;padding:8px 12px;font-size:.82rem;max-width:260px;box-shadow:0 8px 20px rgba(0,0,0,.4);animation:drop .4s both}
+.toast b{display:block;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#a36d00}
+
+/* judul */
+.title{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;gap:12px;padding:24px;background:linear-gradient(90deg,rgba(8,20,28,.95) 0%,rgba(8,20,28,.82) 45%,rgba(8,20,28,.1) 100%);z-index:2}
+@media (max-aspect-ratio:4/5){.title{background:linear-gradient(transparent 10%,rgba(8,20,28,.95) 55%)}}
+.title>*{max-width:430px}
+.title h1{font-family:var(--display);font-weight:800;font-size:clamp(2.2rem,7vw,3.4rem);line-height:.95;margin:0;letter-spacing:-.02em}
+.title h1 em{font-style:normal;color:var(--alarm)}
+.title p{margin:0;color:#cfdbe0}
+.foot{font-size:.7rem;color:var(--muted);text-align:center;max-width:1000px;margin:0}
+@media (prefers-reduced-motion:reduce){.scene,.sprite,.fade{transition:none}.hot,.bubble span,.vs img,.vs .vt,.stage.shake,.sprite.hit{animation:none}}
+</style>
+
+<div class="hud">
+  <span class="t">WASPADA PENIPUAN</span>
+  <div class="r">
+    <div class="hearts" id="hearts" hidden aria-label="Keteguhan">Keteguhan <i></i><i></i><i></i><i></i><i></i></div>
+    <button class="recbtn" id="mute" aria-label="Matikan suara">🔊 Suara</button>
+    <div class="steps" id="steps"></div>
+  </div>
+</div>
+<div class="stage" id="stage">
+  <div class="scene" id="scene"><div class="bgimg" id="bgimg"></div><div id="hots"></div></div>
+  <img class="sprite hide" id="sp" alt="">
+  <button class="recst" id="recbtn" hidden aria-label="Buka Catatan Bukti"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="currentColor"/></svg><span>Catatan Bukti</span><b id="recn">0</b></button>
+  <div class="call" id="call" hidden><span id="callnm"></span><span class="tm" id="calltm">00:00</span></div>
+  <div id="choices" class="choices" hidden></div>
+  <div class="dlg" id="dlg" hidden tabindex="0" role="button" aria-label="Lanjutkan dialog">
+    <span class="name" id="nm"></span><div class="txt" id="txt" aria-live="polite"></div><span class="more" id="more">ketuk</span>
+  </div>
+  <div class="flash" id="flash"></div>
+  <div class="bubble" id="bubble" hidden><span id="bubtxt"></span></div>
+  <div class="panel" id="panel" hidden><div class="sheet" id="sheet"></div></div>
+  <div class="panel" id="rec" hidden style="z-index:8"><div class="sheet">
+    <span class="tag">Catatan bukti Gatouz</span><h2>Fakta yang sudah terkumpul</h2>
+    <div class="ev" id="evlist"></div><button class="go alt" id="recclose">Tutup catatan</button></div></div>
+  <div class="vs" id="vs" hidden><img src="img/versus.webp" alt="Gatouz berhadapan dengan Antoni"><div class="vt"><small>GATOUZ VS ANTONI</small>ADU ARGUMEN!</div></div>
+  <div class="fade" id="fade"></div>
+  <div class="title" id="title">
+    <span class="tag" style="color:var(--signal)">Episode 2 · Waspada penipuan mengatasnamakan Bea Cukai</span>
+    <h1>Hoodie Murah,<br><em>Telepon Palsu</em></h1>
+    <p>Gatouz cuma mau beli hoodie promo 10.10. Yang datang malah telepon dari orang yang mengaku petugas Bea Cukai. Bantu Gatouz membongkar penipunya.</p>
+    <button class="go" id="start">Mulai</button>
+  </div>
+</div>
+<p class="foot">Prototipe edukasi Seksi Layanan Informasi KPPBC TMP Belawan. Nama orang, toko, bank, dan nomor rekening di dalam game ini fiktif.</p>
+
+<script>
+const $=id=>document.getElementById(id);
+
+/* ---------- suara (file di folder sfx/) ---------- */
+const SFX={beep:.6,bubble_pop:.7,error:.6,hanging_up:.8,hit_sound:.9,notification:.8,sucess_chime:.7};
+const MUSIC={kamar:["bedroom_music",.3],tegang:["suspense",.35],adu:["adu_argumen",.35]};
+const SND={}; Object.keys(SFX).forEach(n=>{SND[n]=new Audio(`sfx/${n}.mp3`);SND[n].preload="auto"});
+const loopA=(n,v)=>{const a=new Audio(`sfx/${n}.mp3`);a.loop=true;a.volume=v;a.preload="auto";return a};
+const RING=loopA("phone_ringing",.7), TYPE=loopA("type_writer",.18);
+let muted=false; try{muted=localStorage.getItem("ep2-mute")==="1"}catch(e){}
+let curMusic=null, musicEl=null;
+function sfx(n){ if(muted||!SND[n])return; const a=SND[n].cloneNode(); a.volume=SFX[n]; a.play().catch(()=>{}) }
+function fadeOut(a){ if(!a)return; const st=setInterval(()=>{a.volume=Math.max(0,a.volume-.04);if(a.volume<=0){clearInterval(st);a.pause()}},60) }
+function bgm(k){
+  if(k===curMusic)return; curMusic=k; fadeOut(musicEl); musicEl=null;
+  if(!k)return; const [f,v]=MUSIC[k]; musicEl=loopA(f,0); musicEl.dataset.v=v;
+  if(muted)return; musicEl.play().catch(()=>{});
+  const el=musicEl, st=setInterval(()=>{el.volume=Math.min(v,el.volume+.03);if(el.volume>=v)clearInterval(st)},60);
+}
+function ring(on){ RING.pause(); RING.currentTime=0; if(on&&!muted)RING.play().catch(()=>{}) }
+function typeSnd(on){ if(on&&!muted){TYPE.currentTime=Math.random()*6;TYPE.play().catch(()=>{})} else TYPE.pause() }
+function drawMute(){ $("mute").textContent=muted?"🔇 Suara mati":"🔊 Suara"; $("mute").setAttribute("aria-label",muted?"Nyalakan suara":"Matikan suara") }
+function setMute(m){
+  muted=m; try{localStorage.setItem("ep2-mute",m?"1":"0")}catch(e){} drawMute();
+  if(m){musicEl&&musicEl.pause();RING.pause();TYPE.pause()} else if(musicEl){musicEl.volume=+musicEl.dataset.v;musicEl.play().catch(()=>{})}
+}
+document.addEventListener("visibilitychange",()=>{ if(!musicEl||muted)return; document.hidden?musicEl.pause():musicEl.play().catch(()=>{}) });
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const IMG=n=>`img/${n}.webp`;
+const BGS={"kamar-pagi":1,"kamar-siang":1,hp:1,telepon:1,desktop:1,market:1};
+const STEPS=["Belanja","Chat penjual","Telepon","Bravo 1500225","Adu argumen","Selesai"];
+["bela-jelaskan","bela-namaste","bela-sapa","bela-awas","penipu-lelah","penipu-marah","penipu-ancam","penipu-senyum","versus","chat-toko",...Object.keys(BGS).map(k=>"bg-"+k)].forEach(n=>{const i=new Image();i.src=IMG(n)});
+
+/* Titik ketuk (dalam % gambar latar) */
+const HOT={
+  komputer:{x:89.6,y:19.5,w:10.2,h:21,label:"Komputer",fx:.92},
+  browser:{x:31.6,y:31.4,w:3.6,h:7.6,label:"Browser",fx:.34},
+  hp:{x:46.2,y:36.8,w:10.2,h:36,label:"Buka pesan"},
+  terima:{x:47.3,y:61.4,w:3.5,h:6.8,label:"Terima",round:1},
+  tolak:{x:51.9,y:61.4,w:3.5,h:6.8,round:1}
+};
+
+/* =====================================================================
+   NASKAH PERCAKAPAN — BAGIAN INI YANG BOLEH DIEDIT
+   ---------------------------------------------------------------------
+   who : "me" = Gatouz        "think" = Gatouz dalam hati   "narr" = narator
+         "bela" = Petugas Bela "pen0" = Nomor Asing         "pen" = Antoni (penipu)
+         "budi" = Budi (penjual)
+   sp  : bela-sapa | bela-jelaskan | bela-awas | bela-namaste
+         penipu-senyum | penipu-ancam | penipu-marah | penipu-lelah | null
+   bg  : kamar-pagi | kamar-siang | desktop | market | hp | telepon
+   step: nomor tahap di bar atas (0 Belanja … 5 Selesai)
+   call: teks panggilan aktif di pojok kiri atas, null = tutup telepon
+   hot : titik yang harus diketuk pemain (lihat HOT di atas)
+   choice: pilihan. ok:1 = jawaban benar. no:"..." = isi hati kalau salah.
+           bubble:"obj" = TIDAK TERKECOH!  bubble:"hold" = RASAIN!
+   ATURAN AMAN: tiap baris diakhiri koma; tanda kutip ganda di dalam teks ditulis \"
+   ===================================================================== */
+const N={bela:"Petugas Bela",pen0:"Nomor Asing",pen:"Antoni",budi:"Budi (penjual)"};
+const SCRIPT=[
+ {step:0,music:"kamar",bg:"kamar-pagi",sp:null,who:"narr",t:"Sabtu pagi, 10 Oktober. Gatouz baru bangun dan langsung teringat sesuatu."},
+ {who:"me",t:"Wah, 10.10! Tanggal cantik, pasti banyak promo. Cari hoodie dulu ah. Minggu depan kan ada acara kawanku."},
+ {hot:"komputer",t:"Ketuk komputer di meja untuk mulai belanja."},
+ {bg:"desktop",hot:"browser",t:"Ketuk ikon browser di layar komputer."},
+ {bg:"market",who:"narr",t:"Halaman marketplace terbuka. Ratusan hoodie berbaris dengan label diskon 10.10."},
+ {who:"me",t:"Nah, ini dia! Hoodie merah maroon, cuma dua ratus ribu. Murah kali! Cocoklah untuk dresscode acara minggu depan."},
+ {mission:"produk"},
+ {who:"me",t:"Sudah di-checkout. Bayarnya nanti waktu barang sampai. Tinggal pantengin statusnya aja."},
+ {fade:"3 jam kemudian…"},
+ {bg:"kamar-siang",sfx:"notification",who:"narr",t:"HP Gatouz bergetar di atas kasur."},
+ {who:"me",t:"Wih, ada notifikasi dari penjual. Sudah mau dikirim kah?"},
+ {step:1,bg:"hp",notif:true,hot:"hp",t:"Ketuk layar HP untuk membaca pesan dari penjual."},
+ {mission:"chatToko"},
+ {bg:"kamar-siang",who:"me",t:"Hah? Stoknya habis? Disuruh lanjut lewat WA pula."},
+ {who:"think",t:"Ya sudahlah. Aku memang suka kali sama hoodie itu. Coba aku WA penjualnya."},
+ {mission:"wa"},
+ {who:"think",t:"Hmm… dia minta transfer ke rekening pribadi, terus pesanan di aplikasi disuruh batalkan."},
+ {choice:true,who:"think",t:"Transfer atau tidak?",
+  opts:[{t:"Transfer saja. Cuma 200 ribu, yang penting hoodienya dapat.",go:"transfer"},
+        {t:"Jangan transfer. Kenapa harus keluar dari aplikasi?",go:"end1"}]},
+ {label:"end1",mission:"ending1"},
+ {label:"transfer",mission:"transfer"},
+ {who:"budi",t:"\"Sip kak, sudah masuk. Paketnya dikirim hari ini ya.\""},
+ {who:"me",t:"Beres. Tinggal tunggu paketnya datang."},
+ {fade:"Keesokan harinya…"},
+ {step:2,bg:"telepon",who:"narr",t:"HP Gatouz berdering. Di layar tertulis: Nomor Asing."},
+ {who:"think",t:"Siapa ini? Nomornya nggak tersimpan."},
+ {ring:true,hot:"terima",decoy:"tolak",no:"Kalau kutolak, nanti dia nelepon terus. Angkat saja, tapi tetap waspada.",t:"Ketuk tombol hijau untuk mengangkat telepon."},
+ {music:"tegang",bg:"kamar-siang",call:"Nomor Asing",sp:"penipu-senyum",who:"me",t:"Halo?"},
+ {who:"pen0",t:"Halo, selamat siang. Benar ini dengan Bapak Gatouz?"},
+ {who:"me",t:"Benar. Ini siapa ya?"},
+ {who:"pen0",t:"Saya Antoni, petugas Bea Cukai. Saya sedang memeriksa paket Bapak yang berisi hoodie merah. Benar itu paket Bapak?"},
+ {call:"Antoni · ngaku petugas Bea Cukai",who:"me",t:"Iya benar, Pak."},
+ {sp:"penipu-ancam",who:"pen",t:"Barang Bapak kena larangan dan pembatasan, alias lartas. Ilegal masuk ke Indonesia!"},
+ {who:"me",t:"Lho, barang saya kan cuma hoodie, Pak?"},
+ {who:"pen",t:"Iya, tapi tetap ilegal. Dendanya dua juta rupiah, dan harus dibayar hari ini."},
+ {who:"me",t:"Dua juta? Saya nggak punya uang segitu sekarang, Pak!"},
+ {sp:"penipu-marah",shake:true,who:"pen",t:"Terserah! Kalau tidak segera dibayar, Bapak bisa masuk penjara!"},
+ {who:"me",t:"B-baik, Pak. Ke mana saya harus transfer?"},
+ {sp:"penipu-senyum",who:"pen",t:"Ke rekening saya atas nama Antoni, nomor 8796541. Saya tunggu satu jam."},
+ {who:"me",t:"Baik, saya hubungi keluarga dulu ya, Pak."},
+ {call:null,sp:null,shake:true,who:"narr",t:"Telepon ditutup. Tangan Gatouz gemetar."},
+ {who:"think",t:"Gimana ini? Aku nggak mau masuk penjara! Tenang… tarik napas… ingat-ingat lagi."},
+ {who:"think",t:"Hoodie dua ratus ribu, dendanya dua juta? Nggak masuk akal. Bayarnya ke rekening pribadi pula."},
+ {who:"me",t:"Betul! Aku pastikan dulu ke call center Bea Cukai."},
+ {step:3,mission:"dial"},
+ {music:"kamar",call:"Bravo Bea Cukai · 1500225",sp:"bela-sapa",who:"bela",t:"Selamat siang, Bravo Bea Cukai, dengan Bela. Ada yang bisa dibantu?"},
+ {who:"me",t:"Halo, Mbak Bela. Saya baru beli hoodie merah harga 200 ribu. Terus ada yang nelepon, ngaku petugas Bea Cukai, katanya saya kena denda 2 juta. Itu benar, Mbak?"},
+ {sp:"bela-jelaskan",who:"bela",t:"Boleh saya tahu nomor dokumen tagihannya, Pak?"},
+ {who:"me",t:"Dia nggak menyebut dokumen tagihan apa pun, Mbak. Cuma disuruh langsung transfer ke rekening pribadinya."},
+ {sp:"bela-awas",who:"bela",t:"Baik, Pak. Dari ciri-cirinya, ini sangat erat kaitannya dengan modus penipuan. Jangan transfer sepeser pun ke rekening tersebut, ya."},
+ {who:"me",t:"Jadi itu tidak benar ya, Mbak?"},
+ {sp:"bela-jelaskan",who:"bela",t:"Tidak benar, Pak. Bea Cukai tidak pernah meminta pembayaran ke rekening pribadi. Bea masuk dan pajak hanya ditagih lewat dokumen resmi yang terdata di sistem kami, lalu disetor ke kas negara."},
+ {who:"bela",t:"Kalau Bapak diminta membayar tanpa dokumen resmi, tidak perlu dibayar. Satu lagi: urusan Bea Cukai itu barang impor dan ekspor. Belanja dari penjual dalam negeri tidak lewat Bea Cukai."},
+ {bukti:["rek","dok","impor"]},
+ {who:"narr",t:"Tiga fakta dari Bela masuk ke Catatan Bukti. Buka kapan saja lewat tombol di pojok kanan atas layar."},
+ {who:"me",t:"Wah, terima kasih banyak, Mbak. Kali ini saya nggak akan terkecoh."},
+ {sp:"bela-namaste",who:"bela",t:"Sama-sama, Pak. Terima kasih sudah menghubungi Bravo Bea Cukai. Selalu waspada, ya."},
+ {call:null,sp:null,who:"me",t:"Ternyata dia mau menipu aku! Nggak akan kutransfer!"},
+ {step:4,music:"tegang",bg:"telepon",who:"narr",t:"Belum lama, HP berdering lagi. Nomor asing yang sama."},
+ {who:"me",t:"Aku sudah tahu semuanya. Tapi kali ini akan kulawan!"},
+ {ring:true,hot:"terima",decoy:"tolak",no:"Jangan kabur sekarang. Hadapi dia!",t:"Angkat teleponnya. Saatnya membuat penipu itu mati kutu."},
+ {versus:true,music:"adu"},
+ {label:"ce",ce:true,bg:"kamar-siang",call:"Antoni · Nomor Asing",sp:"penipu-senyum",who:"me",t:"Halo!"},
+ {who:"pen",t:"Sudah transfer belum?!"},
+ {choice:true,who:"think",t:"Jawab apa ya?",
+  opts:[{t:"Sudah… tapi bohong! Hahaha!",bubble:"hold",then:[{sp:"penipu-marah",shake:true,who:"pen",t:"Jangan main-main kamu! Kamu sedang berurusan dengan hukum!"}]},
+        {t:"Belum. Saya lagi makan, jangan ganggu dulu.",bubble:"hold",then:[{sp:"penipu-ancam",who:"pen",t:"Cepat! Kalau tidak, kamu akan segera berurusan dengan hukum!"}]}]},
+ {choice:true,who:"think",t:"Berurusan dengan hukum, katanya.",
+  opts:[{t:"Berurusan dengan hukum, atau dengan pelanggar hukum?",bubble:"hold"},
+        {t:"Yaelah, penipu kok bicara hukum.",bubble:"hold"}]},
+ {sp:"penipu-marah",who:"pen",t:"Maksud kamu apa?! Sudah, cepat kirim ke rekening saya!"},
+ {choice:true,who:"think",t:"Sekarang serang balik dengan fakta. Cek Catatan Bukti kalau ragu.",
+  opts:[{t:"Bea Cukai tidak pernah meminta pembayaran ke rekening pribadi!",ok:1,bubble:"obj"},
+        {t:"Baik, maaf, Pak.",no:"Tidak, tidak. Bukan ini yang mau kulakukan."},
+        {t:"Bapak punya anak perempuan yang masih lajang?",no:"Aku nggak punya waktu untuk ini."}]},
+ {sp:"penipu-marah",who:"pen",t:"Sok tahu kamu! Barangmu itu barang terlarang!"},
+ {who:"me",t:"Memangnya barang saya dikirim dari mana, Pak?"},
+ {sp:"penipu-ancam",who:"pen",t:"Dari Semarang! Masa kamu lupa?"},
+ {bukti:["semarang"]},
+ {who:"think",t:"Semarang? Itu kan di Indonesia sendiri!"},
+ {choice:true,who:"think",t:"Pakai pengakuannya barusan.",
+  opts:[{t:"Oh iya, Pak. Maaf, kadang saya pikun.",no:"Lho, kok aku yang jadi teledor sendiri?"},
+        {t:"Bea Cukai tidak mengurus jual beli pakaian di dalam negeri!",ok:1,bubble:"obj"},
+        {t:"Bapak marah-marah terus, nanti cepat tua lho.",no:"Kayaknya nggak usah bercanda sama penipu."}]},
+ {sp:"penipu-marah",shake:true,who:"pen",t:"Kamu ini nggak takut masuk penjara, ya?!"},
+ {choice:true,who:"think",t:"Dia mulai mengancam lagi.",
+  opts:[{t:"Nggak takut. Saya cuma takut kepada Tuhan Yang Maha Esa.",no:"Iya benar sih, tapi dia mana peduli."},
+        {t:"Ampun, Pak! Ampun!",no:"Kok jadi aku yang minta ampun? Aneh."},
+        {t:"Bapak nggak bisa memenjarakan orang, apalagi menagih tanpa dokumen tagihan resmi!",ok:1,bubble:"obj"}]},
+ {sp:"penipu-ancam",who:"pen",t:"Dasar bocah, nggak mau dikasih tahu! Saya laporkan kamu ke pihak berwenang!"},
+ {choice:true,who:"think",t:"Serangan terakhir.",
+  opts:[{t:"Silakan. Justru Bapak yang akan saya laporkan atas percobaan penipuan.",ok:1,bubble:"obj"},
+        {t:"Jangan dong, Pak. Dari kecil saya nggak pernah dilaporin ke polisi.",no:"Kok aku malah minta dikasihani? Sadar, Gatouz!"},
+        {t:"Laporkan saja ke hati saya yang kosong ini, biar ada isinya.",no:"Jangan kumat sekarang, Gatouz."}]},
+ {sp:"penipu-lelah",who:"pen",t:"Ah, sudahlah. Capek saya ngomong sama kamu."},
+ {call:null,ce:false,music:"kamar",who:"narr",t:"Tut… tut… tut… Telepon diputus."},
+ {step:5,sp:null,who:"me",t:"Rasain! Biar kapok jadi penipu."},
+ {who:"think",t:"Tapi… aku sudah telanjur transfer 200 ribu ke si Budi. Jangan-jangan dia komplotan penipu juga."},
+ {who:"me",t:"Aku lapor saja. Sekalian jadi pelajaran: jangan sembarangan transfer ke rekening pribadi."},
+ {mission:"akhir"}
+];
+
+const BUKTI={
+ rek:["Rekening tujuan","Bea Cukai tidak pernah meminta pembayaran ke rekening pribadi. Pembayaran resmi disetor ke kas negara.","Petugas Bela, Bravo Bea Cukai"],
+ dok:["Dokumen tagihan","Tagihan resmi selalu punya dokumen yang terdata di sistem Bea Cukai. Tanpa dokumen resmi, tidak perlu bayar.","Petugas Bela, Bravo Bea Cukai"],
+ impor:["Wewenang Bea Cukai","Bea Cukai mengurus barang impor dan ekspor, bukan belanja dari penjual dalam negeri.","Petugas Bela, Bravo Bea Cukai"],
+ semarang:["Pengakuan Antoni","\"Barangmu dari Semarang!\" Artinya paket dikirim dari dalam negeri.","Telepon Antoni"]
+};
+
+/* ---------- mesin cerita ---------- */
+const labels={}; SCRIPT.forEach((n,i)=>{if(n.label)labels[n.label]=i});
+let idx=-1, queue=[], typing=null, full="", curBg=null, waitChoice=false, fx=.5, ceOn=false, hearts=5, got=[];
+const stage=$("stage"), scene=$("scene");
+
+function layout(){
+  const W=stage.clientWidth,H=stage.clientHeight,R=1920/1047;
+  let w=Math.max(W,H*R), h=w/R; if(h<H){h=H;w=h*R}
+  const left=Math.min(0,Math.max(W-w,W/2-fx*w));
+  Object.assign(scene.style,{width:w+"px",height:h+"px",left:left+"px",top:(H-h)/2+"px",fontSize:(w/100)+"px"});
+}
+addEventListener("resize",layout);
+function setSteps(i){$("steps").innerHTML=STEPS.map((s,j)=>`<span class="${j<i?"done":j===i?"on":""}">${s}</span>`).join("")}
+function setBg(k,f){
+  fx=f??.5; $("hots").innerHTML="";
+  if(k===curBg){layout();return} curBg=k;
+  scene.classList.add("out");
+  setTimeout(()=>{$("bgimg").style.backgroundImage=`url(${IMG("bg-"+k)})`;layout();scene.classList.remove("out")},reduce?0:300);
+}
+function setSprite(name){
+  const sp=$("sp");
+  if(!name){sp.classList.add("hide");sp.dataset.n="";return}
+  if(sp.dataset.n!==name){sp.src=IMG(name);sp.dataset.n=name;sp.alt=name.startsWith("bela")?"Petugas Bela":"Antoni, penipu"}
+  sp.classList.remove("hide");
+}
+let callT=null;
+function setCall(txt){
+  clearInterval(callT);
+  if(!txt){ if(!$("call").hidden)sfx("hanging_up"); $("call").hidden=true;return}
+  $("call").hidden=false;$("callnm").textContent=txt;let s=0;$("calltm").textContent="00:00";
+  callT=setInterval(()=>{s++;$("calltm").textContent=String(s/60|0).padStart(2,"0")+":"+String(s%60).padStart(2,"0")},1000);
+}
+function setCE(on){ceOn=on;stage.classList.toggle("ce",on);$("hearts").hidden=!on;if(on){hearts=5;drawHearts()}}
+function drawHearts(){[...$("hearts").querySelectorAll("i")].forEach((h,i)=>h.classList.toggle("off",i>=hearts))}
+function shake(){if(reduce)return;stage.classList.remove("shake");void stage.offsetWidth;stage.classList.add("shake")}
+function flash(){if(reduce)return;const f=$("flash");f.classList.remove("on");void f.offsetWidth;f.classList.add("on")}
+
+function next(){
+  let n;
+  if(queue.length) n=queue.shift();
+  else { idx++; if(idx>=SCRIPT.length)return; n=SCRIPT[idx]; }
+  run(n);
+}
+function jump(l){queue=[];idx=labels[l]-1;next()}
+function run(n){
+  if(n.goto) return jump(n.goto);
+  if(n.step!=null) setSteps(n.step);
+  if(n.bg) setBg(n.bg, n.hot&&HOT[n.hot].fx);
+  if("sp" in n) setSprite(n.sp);
+  if("call" in n) setCall(n.call);
+  if("ce" in n) setCE(n.ce);
+  if(n.shake) shake();
+  if("music" in n) bgm(n.music);
+  if(n.sfx) sfx(n.sfx);
+  if(n.bukti){ addBukti(n.bukti); }
+  if(n.fade){ $("dlg").hidden=true; const f=$("fade"); f.textContent=n.fade; f.classList.add("on");
+    setTimeout(()=>{f.classList.remove("on");next()}, reduce?1200:2000); return; }
+  if(n.versus) return versus();
+  if(n.hot) return hotspot(n);
+  if(n.mission){ $("dlg").hidden=true; MISSIONS[n.mission](); return; }
+  if(n.choice) return say(n.who,n.t,()=>showChoice(n));
+  if(n.t) return say(n.who,n.t,null);
+  next();
+}
+function say(who,text,done,tip){
+  const d=$("dlg"), nm=$("nm");
+  d.hidden=false; d.className="dlg"+(who==="think"?" think":"")+(tip?" tip":"")+(who==="pen"&&ceOn?" foe":"");
+  $("sp").classList.toggle("dim", who==="me"||who==="think"||who==="narr");
+  nm.hidden=false;
+  if(tip){nm.textContent="Petunjuk";nm.className="name"}
+  else if(who==="me"){nm.textContent="Gatouz";nm.className="name me"}
+  else if(who==="think"){nm.textContent="Gatouz · dalam hati";nm.className="name th"}
+  else if(who==="narr"){nm.hidden=true}
+  else {nm.textContent=N[who];nm.className="name"+(who.startsWith("pen")?" foe":"")}
+  $("more").hidden=!!done||!!tip;
+  type(text,done);
+}
+function type(text,done){
+  clearInterval(typing); full=text; type.done=done; const el=$("txt");
+  if(reduce){el.textContent=text;typing=null;done&&done();return}
+  let i=0; el.textContent=""; typeSnd(true);
+  typing=setInterval(()=>{el.textContent=text.slice(0,++i);if(i>=text.length){clearInterval(typing);typing=null;typeSnd(false);done&&done()}},16);
+}
+function advance(){
+  if(waitChoice||$("dlg").hidden)return;
+  if(typing){clearInterval(typing);typing=null;typeSnd(false);$("txt").textContent=full;type.done&&type.done();return}
+  next();
+}
+$("dlg").onclick=advance;
+$("dlg").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();advance()}};
+
+function hotspot(n){
+  waitChoice=true; say("narr",n.t,null,true);
+  if(HOT[n.hot].fx){fx=HOT[n.hot].fx;layout()}
+  const mk=(key,decoy)=>{const h=HOT[key],b=document.createElement("button");
+    b.className="hot"+(h.round?" round":"")+(decoy?" decoy":"");
+    Object.assign(b.style,{left:h.x+"%",top:h.y+"%",width:h.w+"%",height:h.h+"%"});
+    b.setAttribute("aria-label",decoy?"Tolak panggilan":h.label);
+    if(!decoy&&h.label)b.innerHTML=`<span class="lbl">${h.label}</span>`;
+    $("hots").appendChild(b);return b};
+  const draw=()=>{
+    if(n.notif)$("hots").insertAdjacentHTML("beforeend",`<div class="notif"><b>Murahjos Official Store</b>1 pesan baru</div>`);
+    const ok=mk(n.hot);
+    if(n.ring)ring(true);
+    ok.onclick=()=>{$("hots").innerHTML="";ring(false);sfx("bubble_pop");waitChoice=false;next()};
+    if(n.decoy){mk(n.decoy,true).onclick=()=>{$("hots").innerHTML="";say("think",n.no,()=>setTimeout(()=>{say("narr",n.t,null,true);draw()},1400))}}
+    ok.focus({preventScroll:true});
+  };
+  setTimeout(draw,reduce?0:350);
+}
+
+function showChoice(n){
+  waitChoice=true; const box=$("choices"); box.hidden=false;
+  box.innerHTML=n.opts.map((o,i)=>`<button class="choice" data-i="${i}"><span class="k">${String.fromCharCode(65+i)}</span>${o.t}</button>`).join("");
+  box.querySelector("button").focus();
+  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    const o=n.opts[+b.dataset.i]; box.hidden=true; sfx("bubble_pop");
+    if(o.no){
+      if(ceOn){hearts--;drawHearts();shake();sfx("error")}
+      say("me",o.t,()=>setTimeout(()=>say("think",o.no,()=>setTimeout(()=>{
+        if(ceOn&&hearts<=0) return fail();
+        say(n.who,n.t,()=>showChoice(n));
+      },1300)),700));
+      return;
+    }
+    const go=()=>{waitChoice=false; queue=(o.then||[]).slice(); if(o.go)queue.push({goto:o.go}); say("me",o.t,null)};
+    if(o.bubble) bubble(o.bubble,go); else go();
+  });
+}
+function bubble(kind,done){
+  const b=$("bubble"); b.className="bubble"+(kind==="hold"?" hold":""); $("bubtxt").textContent=kind==="hold"?"RASAIN!":"TIDAK TERKECOH!";
+  b.hidden=false; flash(); shake(); sfx("hit_sound");
+  if(kind==="obj"){const sp=$("sp");sp.classList.remove("hit");void sp.offsetWidth;sp.classList.add("hit")}
+  setTimeout(()=>{b.hidden=true;done()},reduce?700:1000);
+}
+function fail(){
+  waitChoice=false; $("dlg").hidden=true;
+  sfx("error"); const f=$("fade"); f.textContent="Gatouz terpancing dan kehilangan fokus. Ulangi adu argumen!"; f.classList.add("on");
+  setTimeout(()=>{f.classList.remove("on");jump("ce")},2400);
+}
+function versus(){
+  $("dlg").hidden=true; const v=$("vs"); v.hidden=false; sfx("hit_sound"); let done=false;
+  const end=()=>{if(done)return;done=true;v.hidden=true;next()};
+  v.onclick=end; setTimeout(end,reduce?1800:3000);
+}
+function addBukti(ids){
+  ids.forEach(i=>{if(!got.includes(i))got.push(i)});
+  const rb=$("recbtn"); rb.hidden=false; $("recn").textContent=got.length; rb.classList.remove("new"); void rb.offsetWidth; rb.classList.add("new");
+  const t=document.createElement("div"); t.className="toast";
+  t.innerHTML=`<b>Masuk Catatan Bukti</b>${ids.map(i=>BUKTI[i][0]).join(" · ")}`;
+  sfx("sucess_chime"); stage.appendChild(t); setTimeout(()=>t.remove(),3200);
+}
+$("recbtn").onclick=()=>{
+  $("evlist").innerHTML=got.map(i=>`<div><b>${BUKTI[i][0]}</b>${BUKTI[i][1]}<br><small>Sumber: ${BUKTI[i][2]}</small></div>`).join("");
+  $("rec").hidden=false; $("recclose").focus();
+};
+$("recclose").onclick=()=>{$("rec").hidden=true};
+
+function openPanel(html){$("sheet").innerHTML=html;$("panel").hidden=false;$("sheet").scrollTop=0;const f=$("sheet").querySelector("button:not([disabled]),input");f&&f.focus()}
+function closePanel(){$("panel").hidden=true;next()}
+function keypad(onKey){
+  return `<div class="keys">${["1","2","3","4","5","6","7","8","9","del","0","ok"].map(k=>
+    k==="del"?`<button class="del" data-k="del" aria-label="Hapus">⌫</button>`:k==="ok"?`<button class="call-b" data-k="ok" aria-label="OK">✓</button>`:`<button data-k="${k}">${k}</button>`).join("")}</div>`;
+}
+function bindKeys(fn){
+  $("sheet").querySelectorAll(".keys button").forEach(b=>b.onclick=()=>{sfx("beep");fn(b.dataset.k)});
+  const kd=e=>{if($("panel").hidden){removeEventListener("keydown",kd);return}
+    if(/^[0-9]$/.test(e.key)){sfx("beep");fn(e.key)}else if(e.key==="Backspace")fn("del");else if(e.key==="Enter"){e.preventDefault();fn("ok")}};
+  addEventListener("keydown",kd);
+}
+
+/* ---------- misi ---------- */
+const HOODIE=`<svg viewBox="0 0 120 130" aria-hidden="true"><path d="M42 18c4-8 32-8 36 0l20 10 16 40-16 6-8-18v62H30V56l-8 18-16-6 16-40z" fill="#7d1f2b"/>
+ <path d="M44 18c2 14 30 14 32 0" fill="none" stroke="#5a1520" stroke-width="5"/><path d="M52 30v18M68 30v18" stroke="#e8d7c8" stroke-width="2"/>
+ <rect x="44" y="84" width="32" height="16" rx="4" fill="#6a1a25"/></svg>`;
+const MISSIONS={
+ produk(){
+  let size=null;
+  openPanel(`<span class="tag">Marketplace · Promo 10.10</span>
+   <div class="prod">${HOODIE}<div><div class="nm">Jaket Hoodie Merah Premium (Unisex)</div>
+    <div><span class="pr">Rp200.000</span><s>Rp450.000</s></div>
+    <div class="meta"><span>Murahjos Official Store</span><span>2K+ pembeli · ★ 4,9</span><span>Dikirim dari Semarang</span></div></div></div>
+   <div><span class="tag">Pilih ukuran</span><div class="yn" id="sz" style="margin-top:6px">${["S","M","L","XL"].map(s=>`<button data-v="${s}">${s}</button>`).join("")}</div></div>
+   <div class="hint">Pembayaran: Bayar di tempat (COD). Uang baru dibayar saat paket sampai.</div>
+   <button class="go" id="co" disabled>Checkout</button>`);
+  $("sz").querySelectorAll("button").forEach(b=>b.onclick=()=>{size=b.dataset.v;$("sz").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));$("co").disabled=false});
+  $("co").onclick=()=>{
+   openPanel(`<span class="tag">Pesanan dibuat</span><h2>Hoodie merah ukuran ${size} sudah dipesan</h2>
+    <table><tr><td>No. pesanan</td><td>2609288EH85RYF</td></tr><tr><td>Toko</td><td>Murahjos</td></tr>
+    <tr><td>Status</td><td>Dalam Pengemasan</td></tr><tr class="tot"><td>Total (COD)</td><td>Rp200.000</td></tr></table>
+    <button class="go" id="ok">Oke</button>`);
+   $("ok").onclick=closePanel;
+  };
+ },
+ chatToko(){
+  openPanel(`<span class="tag">Chat dari penjual · di dalam aplikasi</span>
+   <div class="phone"><img src="img/chat-toko.webp" alt="Chat dari Murahjos Official Store: stok habis, kakak chat ke WhatsApp a.n. Budi"></div>
+   <button class="go" id="ok">Tutup chat</button>`);
+  $("ok").onclick=closePanel;
+ },
+ wa(){
+  const M=[["me","Halo, Bang. Saya yang pesan hoodie merah di Murahjos tadi."],
+   ["b","Halo kak, iya betul. Hoodie yang itu habis, tapi ada versi premium, bahannya lebih tebal. Harga tetap 200rb."],
+   ["b","Pesanan di aplikasi kakak batalkan aja ya biar nggak dobel. Transfer langsung ke rekening saya, hari ini juga barang dikirim."],
+   ["bm","BANK MAKMUR 7712003451 a.n. BUDI SANTOSO"],
+   ["b","Promonya cuma sampai jam 12 ya kak. Lewat dari itu harga naik."],
+   ["me","Oke, Bang. Saya pikir-pikir dulu."]];
+  openPanel(`<span class="tag">WhatsApp</span>
+   <div class="phone"><div class="wa-top"><b>Budi</b><span>online</span></div><div class="wa-body" id="wab"></div></div>
+   <button class="go" id="ok" disabled>Tutup WhatsApp</button>`);
+  let i=0;const box=$("wab");
+  const step=()=>{
+    if(i>=M.length){$("ok").disabled=false;$("ok").focus();return}
+    const [w,t]=M[i++];
+    sfx("bubble_pop"); box.insertAdjacentHTML("beforeend",`<div class="msg${w==="me"?" me":""}${w==="bm"?" mono":""}">${t}</div>`);
+    box.scrollTop=box.scrollHeight; setTimeout(step,reduce?150:950);
+  };
+  setTimeout(step,400);
+  $("ok").onclick=closePanel;
+ },
+ ending1(){
+  setSprite(null); setSteps(5); sfx("sucess_chime");
+  openPanel(`<span class="tag">Ending 1 dari 2</span><h2>Gak Mau Pusing</h2>
+   <p>Gatouz menolak transfer dan membatalkan pesanan. Uangnya aman, penipu kehilangan target, dan hoodie bisa dicari di toko lain yang lebih terpercaya.</p>
+   <span class="tag">Tanda bahaya yang Gatouz kenali</span>
+   <ul class="facts"><li>Penjual mengajak pindah dari aplikasi ke WhatsApp.</li>
+    <li>Pesanan resmi di aplikasi disuruh dibatalkan.</li>
+    <li>Pembayaran diminta ke rekening pribadi.</li>
+    <li>Didesak dengan batas waktu promo.</li></ul>
+   <button class="go" id="lanjut">Begini ceritanya kalau kamu telanjur transfer</button>
+   <button class="go alt" id="ulang">Main lagi dari awal</button>`);
+  $("lanjut").onclick=()=>{$("panel").hidden=true;setSteps(1);jump("transfer")};
+  $("ulang").onclick=()=>location.reload();
+ },
+ transfer(){
+  let pin="", stage2=true;
+  openPanel(`<span class="tag">Simulasi m-banking</span><h2>Konfirmasi transfer</h2>
+   <table><tr><td>Rekening tujuan</td><td>7712003451</td></tr><tr><td>Nama penerima</td><td>BUDI SANTOSO</td></tr>
+   <tr><td>Bank</td><td>Bank Makmur</td></tr><tr class="tot"><td>Nominal</td><td>Rp200.000</td></tr></table>
+   <div class="dial"><div class="scr pin" id="scr">○○○○○○</div>${keypad()}</div>
+   <p style="text-align:center;font-size:.8rem;color:#4b5f68">Masukkan PIN 6 angka (bebas, ini simulasi).</p>`);
+  bindKeys(k=>{
+   if(k==="del")pin=pin.slice(0,-1);else if(k==="ok"){if(pin.length<6)return}else if(pin.length<6)pin+=k;
+   $("scr").textContent="●".repeat(pin.length)+"○".repeat(6-pin.length);
+   if(pin.length===6&&(k==="ok"||k.match(/\d/))){
+    if(stage2==="sent")return; stage2="sent";
+    setTimeout(()=>{sfx("sucess_chime");openPanel(`<span class="tag">Transfer berhasil</span>
+      <div class="receipt"><h3 style="margin:0;font-family:var(--display)">Bukti transfer</h3>
+      <table><tr><td>Ke</td><td>BUDI SANTOSO</td></tr><tr><td>Rekening</td><td>7712003451</td></tr><tr class="tot"><td>Jumlah</td><td>Rp200.000</td></tr></table></div>
+      <div class="hint bad">Uang sudah keluar dari aplikasi marketplace. Kalau terjadi masalah, marketplace tidak bisa menjamin uang ini kembali.</div>
+      <button class="go" id="ok">Tutup</button>`);$("ok").onclick=closePanel},300);
+   }
+  });
+ },
+ dial(){
+  let num="", tries=0;
+  openPanel(`<span class="tag">Telepon</span><h2>Hubungi contact center Bea Cukai</h2>
+   <div class="note">Bravo Bea Cukai: 1500225</div>
+   <div class="dial"><div class="scr" id="scr">&nbsp;</div>${keypad()}</div><div id="dh"></div>`);
+  bindKeys(k=>{
+   if(k==="del")num=num.slice(0,-1);
+   else if(k==="ok"){
+    if(num==="1500225"){$("panel").hidden=true;next();return}
+    tries++;sfx("error");$("dh").innerHTML=`<div class="hint bad">${num?`Nomor ${num} bukan nomor Bravo Bea Cukai.`:"Ketik nomornya dulu."} Ketik 1500225 lalu tekan tombol hijau.</div>`;num="";
+   } else if(num.length<13) num+=k;
+   $("scr").textContent=num||" ";
+  });
+ },
+ akhir(){
+  $("dlg").hidden=true; setSprite(null); sfx("sucess_chime");
+  openPanel(`<span class="tag">Ending 2 dari 2</span><h2>Penipu Mati Kutu</h2>
+   <p>Gatouz tidak jadi membayar "denda" dua juta dan berhasil membuat Antoni menyerah. Sayangnya, 200 ribu sudah telanjur dikirim ke Budi.</p>
+   <span class="tag">Yang perlu diingat</span>
+   <ul class="facts">
+    <li>Bea Cukai tidak pernah meminta pembayaran ke rekening pribadi.</li>
+    <li>Tagihan resmi Bea Cukai selalu punya dokumen yang terdata di sistem dan bisa dicek.</li>
+    <li>Belanja dari penjual dalam negeri tidak melibatkan Bea Cukai.</li>
+    <li>Ditelepon "petugas" dan diancam penjara? Tutup teleponnya, lalu cek ke Bravo Bea Cukai.</li>
+    <li>Belanja online tetap di dalam aplikasi. Jangan mau diajak pindah ke WhatsApp.</li></ul>
+   <span class="tag">Kalau telanjur transfer</span>
+   <ul class="facts"><li>Segera hubungi bank kamu dan laporkan rekening tujuan.</li>
+    <li>Laporkan akun penjual ke marketplace.</li>
+    <li>Simpan tangkapan layar chat dan bukti transfer.</li></ul>
+   <p>Tanya Bravo Bea Cukai: <code class="n">1500225</code> · <a href="https://www.beacukai.go.id/" target="_blank" rel="noopener">beacukai.go.id</a></p>
+   <button class="go" id="ulang">Main lagi</button>`);
+  $("ulang").onclick=()=>location.reload();
+ }
+};
+
+/* layar judul */
+$("bgimg").style.backgroundImage=`url(${IMG("bg-kamar-siang")})`; curBg="kamar-siang"; fx=.5; layout(); setSteps(-1);
+const sp=$("sp"); sp.src=IMG("penipu-senyum"); sp.dataset.n="penipu-senyum"; sp.alt="Antoni, penipu"; sp.classList.remove("hide"); sp.style.left="74%";
+drawMute(); $("mute").onclick=()=>setMute(!muted);
+$("start").onclick=()=>{ bgm("kamar"); $("title").remove(); sp.style.left=""; setSprite(null); next(); $("dlg").focus(); };
+</script>
