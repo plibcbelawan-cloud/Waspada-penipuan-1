@@ -211,14 +211,14 @@ code.n{font-family:var(--mono);font-weight:700;background:#e8eef0;padding:2px 8p
   <div class="bubble" id="bubble" hidden><span id="bubtxt"></span></div>
   <div class="panel" id="panel" hidden><div class="sheet" id="sheet"></div></div>
   <div class="panel" id="rec" hidden style="z-index:8"><div class="sheet">
-    <span class="tag">Catatan bukti Gatouz</span><h2>Fakta yang sudah terkumpul</h2>
+    <span class="tag">Catatan bukti Gatot</span><h2>Fakta yang sudah terkumpul</h2>
     <div class="ev" id="evlist"></div><button class="go alt" id="recclose">Tutup catatan</button></div></div>
-  <div class="vs" id="vs" hidden><img src="img/versus.webp" alt="Gatouz berhadapan dengan Antoni"><div class="vt"><small>GATOUZ VS ANTONI</small>ADU ARGUMEN!</div></div>
+  <div class="vs" id="vs" hidden><img src="img/versus.webp" alt="Gatot berhadapan dengan Antoni"><div class="vt"><small>GATOT VS ANTONI</small>ADU ARGUMEN!</div></div>
   <div class="fade" id="fade"></div>
   <div class="title" id="title">
     <span class="tag" style="color:var(--signal)">Episode 2 · Waspada penipuan mengatasnamakan Bea Cukai</span>
     <h1>Hoodie Murah,<br><em>Telepon Palsu</em></h1>
-    <p>Gatouz cuma mau beli hoodie promo 10.10. Yang datang malah telepon dari orang yang mengaku petugas Bea Cukai. Bantu Gatouz membongkar penipunya.</p>
+    <p>Gatot cuma mau beli hoodie promo 10.10. Yang datang malah telepon dari orang yang mengaku petugas Bea Cukai. Bantu Gatot membongkar penipunya.</p>
     <button class="go" id="start">Mulai</button>
   </div>
 </div>
@@ -269,7 +269,7 @@ const HOT={
 /* =====================================================================
    NASKAH PERCAKAPAN — BAGIAN INI YANG BOLEH DIEDIT
    ---------------------------------------------------------------------
-   who : "me" = Gatouz        "think" = Gatouz dalam hati   "narr" = narator
+   who : "me" = Gatot        "think" = Gatot dalam hati   "narr" = narator
          "bela" = Petugas Bela "pen0" = Nomor Asing         "pen" = Antoni (penipu)
          "budi" = Budi (penjual)
    sp  : bela-sapa | bela-jelaskan | bela-awas | bela-namaste
@@ -284,7 +284,7 @@ const HOT={
    ===================================================================== */
 const N={bela:"Petugas Bela",pen0:"Nomor Asing",pen:"Antoni",budi:"Budi (penjual)"};
 const SCRIPT=[
- {step:0,music:"kamar",bg:"kamar-pagi",sp:null,who:"narr",t:"Sabtu pagi, 10 Oktober. Gatouz baru bangun dan langsung teringat sesuatu."},
+ {step:0,music:"kamar",bg:"kamar-pagi",sp:null,who:"narr",t:"Sabtu pagi, 10 Oktober. Gatot baru bangun dan langsung teringat sesuatu."},
  {who:"me",t:"Wah, 10.10! Tanggal cantik, pasti banyak promo. Cari hoodie dulu ah. Minggu depan kan ada acara kawanku."},
  {hot:"komputer",t:"Ketuk komputer di meja untuk mulai belanja."},
  {bg:"desktop",hot:"browser",t:"Ketuk ikon browser di layar komputer."},
@@ -293,7 +293,7 @@ const SCRIPT=[
  {mission:"produk"},
  {who:"me",t:"Sudah di-checkout. Bayarnya nanti waktu barang sampai. Tinggal pantengin statusnya aja."},
  {fade:"3 jam kemudian…"},
- {bg:"kamar-siang",sfx:"notification",who:"narr",t:"HP Gatouz bergetar di atas kasur."},
+ {bg:"kamar-siang",sfx:"notification",who:"narr",t:"HP Gatot bergetar di atas kasur."},
  {who:"me",t:"Wih, ada notifikasi dari penjual. Sudah mau dikirim kah?"},
  {step:1,bg:"hp",notif:true,hot:"hp",t:"Ketuk layar HP untuk membaca pesan dari penjual."},
  {mission:"chatToko"},
@@ -309,11 +309,11 @@ const SCRIPT=[
  {who:"budi",t:"\"Sip kak, sudah masuk. Paketnya dikirim hari ini ya.\""},
  {who:"me",t:"Beres. Tinggal tunggu paketnya datang."},
  {fade:"Keesokan harinya…"},
- {step:2,bg:"telepon",who:"narr",t:"HP Gatouz berdering. Di layar tertulis: Nomor Asing."},
+ {step:2,bg:"telepon",who:"narr",t:"HP Gatot berdering. Di layar tertulis: Nomor Asing."},
  {who:"think",t:"Siapa ini? Nomornya nggak tersimpan."},
  {ring:true,hot:"terima",decoy:"tolak",no:"Kalau kutolak, nanti dia nelepon terus. Angkat saja, tapi tetap waspada.",t:"Ketuk tombol hijau untuk mengangkat telepon."},
  {music:"tegang",bg:"kamar-siang",call:"Nomor Asing",sp:"penipu-senyum",who:"me",t:"Halo?"},
- {who:"pen0",t:"Halo, selamat siang. Benar ini dengan Bapak Gatouz?"},
+ {who:"pen0",t:"Halo, selamat siang. Benar ini dengan Bapak Gatot?"},
  {who:"me",t:"Benar. Ini siapa ya?"},
  {who:"pen0",t:"Saya Antoni, petugas Bea Cukai. Saya sedang memeriksa paket Bapak yang berisi hoodie merah. Benar itu paket Bapak?"},
  {call:"Antoni · ngaku petugas Bea Cukai",who:"me",t:"Iya benar, Pak."},
@@ -325,7 +325,7 @@ const SCRIPT=[
  {who:"me",t:"B-baik, Pak. Ke mana saya harus transfer?"},
  {sp:"penipu-senyum",who:"pen",t:"Ke rekening saya atas nama Antoni, nomor 8796541. Saya tunggu satu jam."},
  {who:"me",t:"Baik, saya hubungi keluarga dulu ya, Pak."},
- {call:null,sp:null,shake:true,who:"narr",t:"Telepon ditutup. Tangan Gatouz gemetar."},
+ {call:null,sp:null,shake:true,who:"narr",t:"Telepon ditutup. Tangan Gatot gemetar."},
  {who:"think",t:"Gimana ini? Aku nggak mau masuk penjara! Tenang… tarik napas… ingat-ingat lagi."},
  {who:"think",t:"Hoodie dua ratus ribu, dendanya dua juta? Nggak masuk akal. Bayarnya ke rekening pribadi pula."},
  {who:"me",t:"Betul! Aku pastikan dulu ke call center Bea Cukai."},
@@ -377,8 +377,8 @@ const SCRIPT=[
  {sp:"penipu-ancam",who:"pen",t:"Dasar bocah, nggak mau dikasih tahu! Saya laporkan kamu ke pihak berwenang!"},
  {choice:true,who:"think",t:"Serangan terakhir.",
   opts:[{t:"Silakan. Justru Bapak yang akan saya laporkan atas percobaan penipuan.",ok:1,bubble:"obj"},
-        {t:"Jangan dong, Pak. Dari kecil saya nggak pernah dilaporin ke polisi.",no:"Kok aku malah minta dikasihani? Sadar, Gatouz!"},
-        {t:"Laporkan saja ke hati saya yang kosong ini, biar ada isinya.",no:"Jangan kumat sekarang, Gatouz."}]},
+        {t:"Jangan dong, Pak. Dari kecil saya nggak pernah dilaporin ke polisi.",no:"Kok aku malah minta dikasihani? Sadar, Gatot!"},
+        {t:"Laporkan saja ke hati saya yang kosong ini, biar ada isinya.",no:"Jangan kumat sekarang, Gatot."}]},
  {sp:"penipu-lelah",who:"pen",t:"Ah, sudahlah. Capek saya ngomong sama kamu."},
  {call:null,ce:false,music:"kamar",who:"narr",t:"Tut… tut… tut… Telepon diputus."},
  {step:5,sp:null,who:"me",t:"Rasain! Biar kapok jadi penipu."},
@@ -464,8 +464,8 @@ function say(who,text,done,tip){
   $("sp").classList.toggle("dim", who==="me"||who==="think"||who==="narr");
   nm.hidden=false;
   if(tip){nm.textContent="Petunjuk";nm.className="name"}
-  else if(who==="me"){nm.textContent="Gatouz";nm.className="name me"}
-  else if(who==="think"){nm.textContent="Gatouz · dalam hati";nm.className="name th"}
+  else if(who==="me"){nm.textContent="Gatot";nm.className="name me"}
+  else if(who==="think"){nm.textContent="Gatot · dalam hati";nm.className="name th"}
   else if(who==="narr"){nm.hidden=true}
   else {nm.textContent=N[who];nm.className="name"+(who.startsWith("pen")?" foe":"")}
   $("more").hidden=!!done||!!tip;
@@ -531,7 +531,7 @@ function bubble(kind,done){
 }
 function fail(){
   waitChoice=false; $("dlg").hidden=true;
-  sfx("error"); const f=$("fade"); f.textContent="Gatouz terpancing dan kehilangan fokus. Ulangi adu argumen!"; f.classList.add("on");
+  sfx("error"); const f=$("fade"); f.textContent="Gatot terpancing dan kehilangan fokus. Ulangi adu argumen!"; f.classList.add("on");
   setTimeout(()=>{f.classList.remove("on");jump("ce")},2400);
 }
 function versus(){
@@ -617,8 +617,8 @@ const MISSIONS={
  ending1(){
   setSprite(null); setSteps(5); sfx("sucess_chime");
   openPanel(`<span class="tag">Ending 1 dari 2</span><h2>Gak Mau Pusing</h2>
-   <p>Gatouz menolak transfer dan membatalkan pesanan. Uangnya aman, penipu kehilangan target, dan hoodie bisa dicari di toko lain yang lebih terpercaya.</p>
-   <span class="tag">Tanda bahaya yang Gatouz kenali</span>
+   <p>Gatot menolak transfer dan membatalkan pesanan. Uangnya aman, penipu kehilangan target, dan hoodie bisa dicari di toko lain yang lebih terpercaya.</p>
+   <span class="tag">Tanda bahaya yang Gatot kenali</span>
    <ul class="facts"><li>Penjual mengajak pindah dari aplikasi ke WhatsApp.</li>
     <li>Pesanan resmi di aplikasi disuruh dibatalkan.</li>
     <li>Pembayaran diminta ke rekening pribadi.</li>
@@ -665,7 +665,7 @@ const MISSIONS={
  akhir(){
   $("dlg").hidden=true; setSprite(null); sfx("sucess_chime");
   openPanel(`<span class="tag">Ending 2 dari 2</span><h2>Penipu Mati Kutu</h2>
-   <p>Gatouz tidak jadi membayar "denda" dua juta dan berhasil membuat Antoni menyerah. Sayangnya, 200 ribu sudah telanjur dikirim ke Budi.</p>
+   <p>Gatot tidak jadi membayar "denda" dua juta dan berhasil membuat Antoni menyerah. Sayangnya, 200 ribu sudah telanjur dikirim ke Budi.</p>
    <span class="tag">Yang perlu diingat</span>
    <ul class="facts">
     <li>Bea Cukai tidak pernah meminta pembayaran ke rekening pribadi.</li>
